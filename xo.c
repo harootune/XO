@@ -67,18 +67,13 @@ bool check_win(char game_grid[][3], int res_row, int res_column, char current_pl
 };
 
 
-
-
-int main()
+char game_loop(char player_1, char player_2, char current_player)
 {
 	bool game_over;
 	bool game_win;
 	bool space_ok;
 
 	char game_grid[3][3];
-	char player_1;
-	char player_2;
-	char current_player;
 	char buffer_clear;
 
 	int res_row;
@@ -93,21 +88,11 @@ int main()
 		};
 	};
 
-	game_over = false;
 	turn_count = 0;
 	res_row = 0;
 	res_row = 0;
 	
-	printf("%s", "Player 1, please input your symbol: ");
-	player_1 = getchar();
-	getchar();
-	printf("%s", "Player 2, please input your symbol: ");
-	player_2 = getchar();
-	getchar();
-	
-	current_player = player_1;
-
-	while (!(game_over))
+	while (1)
 	{
 		draw_board(game_grid);
 		
@@ -147,14 +132,11 @@ int main()
 
 			if (game_win)
 			{
-				printf("\n%c %s\n", current_player, "wins!");
-				game_over = true;
-
+				return current_player;
 			}	
 			else if (turn_count == 9)
 			{
-				printf("\n%s\n", "It's a draw!");
-				game_over = true;
+				return 0;
 			}
 			else if (current_player == player_1)
 			{
@@ -174,10 +156,113 @@ int main()
 			printf("\n%s\n", "Space filled, please try again.");
 		};
 	};
+};
 
-	draw_board(game_grid);
 
-	printf("\n%s\n", "Game Over!");
+
+int main()
+{
+	bool game_end;
+
+	char player_1;
+	char player_2;
+	char buffer_clear;
+	char current_player;
+	char game_result;
+	char res_continue;
+	
+	int player_1_wins;
+	int player_2_wins;
+
+	game_end = false;
+	player_1_wins = 0;
+	player_2_wins = 0;
+
+	printf("%s", "Player 1, please input your symbol: ");
+	if (scanf("%c%c", &player_1, &buffer_clear) == 0)
+	{	
+		printf("\n%s\n", "Invalid input, try again. Must be alphanumeric.");
+
+		do
+		{
+			buffer_clear = getchar();
+		}
+		while (!isalnum(buffer_clear));
+		ungetc(buffer_clear, stdin);	
+	};
+	printf("%s", "Player 2, please input your symbol: ");
+	if (scanf("%c%c", &player_2, &buffer_clear) == 0)
+	{	
+		printf("\n%s\n", "Invalid input, try again. Must be alphanumeric.");
+
+		do
+		{
+			buffer_clear = getchar();
+		}
+		while (!isalnum(buffer_clear));
+		ungetc(buffer_clear, stdin);	
+	};
+
+	current_player = player_1;
+
+	while (!game_end)
+	{
+		game_result = game_loop(player_1, player_2, current_player);
+		getchar(); /*don't question it*/
+
+		if (game_result == player_1)
+		{
+			printf("\n%c wins!\n", player_1); 
+			player_1_wins += 1;	
+		}
+		else if (game_result == player_2)
+		{
+			printf("\n%c wins!\n", player_2); 
+			player_2_wins += 1;	
+		}
+		else
+		{
+			printf("\n%s\n", "It's a draw.");
+		};
+		
+		printf("%c: %d, %c: %d\n", player_1,
+					   player_1_wins,
+					   player_2,
+					   player_2_wins);
+
+		while (1)
+		{
+			printf("\n%s ", "Play again? (Y/N):");
+			if (scanf("%c", &res_continue) == 0)
+			{	
+				printf("\n%s", "Invalid input, try again");
+
+				do
+				{
+					buffer_clear = getchar();
+				}
+				while (!isalpha(buffer_clear));
+				ungetc(buffer_clear, stdin);	
+			};
+
+			if (res_continue == 'y' || res_continue == 'Y')
+			{
+				printf("\n%s\n", "Starting new game...");
+				break;
+			}
+			else if (res_continue == 'n' || res_continue =='N')
+			{
+				game_end = true;
+				break;
+			}
+			else
+			{
+				printf("\n%s", "Invalid input, must be Y, y, N, or n.");
+			};
+		};
+	};
+	
+	printf("\n%s\n", "Thanks for Playing!");
 	
 	return 0;
 };
