@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "xo_backend.h"
 
 void draw_board(char game_grid[][3])
 {
