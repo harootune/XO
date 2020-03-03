@@ -4,8 +4,9 @@
 #include "xo_backend.h"
 
 void draw_board(char game_grid[][3])
-/*Prints the current game state to stdout*/
 {
+	/*Prints the current game state to stdout*/
+	
 	printf("\n%s\n", "Game state:");
 	printf(" %d %d %d\n", 1, 2, 3);
 	for (int i=0; i<3; i++)
@@ -23,8 +24,9 @@ void draw_board(char game_grid[][3])
 
 
 char game_loop(char player_1, char player_2, char current_player)
-/*Executes a complete 2-player game*/
 {
+	/*Executes a complete 2-player game*/
+
 	bool game_over;
 	bool space_ok;
 
@@ -122,6 +124,8 @@ char game_loop(char player_1, char player_2, char current_player)
 
 int main()
 {
+	/*Main tic-tac-toe functionality*/
+
 	bool game_end;
 
 	char player_1;
@@ -138,7 +142,7 @@ int main()
 	player_1_wins = 0;
 	player_2_wins = 0;
 
-	
+	/*Get player inputs symbols*/	
 	printf("%s", "Player 1, please input your symbol: ");
 	if (scanf("%c%c", &player_1, &buffer_clear) == 0)
 	{	
@@ -166,6 +170,7 @@ int main()
 
 	current_player = player_1;
 
+	/*Session loop*/
 	while (!game_end)
 	{
 		game_result = game_loop(player_1, player_2, current_player);

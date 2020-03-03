@@ -5,6 +5,8 @@
 
 bool check_space(char game_grid[][3], int res_row, int res_column)
 {
+	/*Check if space is available - return false if not*/
+
 	char space;
 	
 	space = game_grid[res_row][res_column];
@@ -24,6 +26,8 @@ bool check_space(char game_grid[][3], int res_row, int res_column)
 
 bool is_moves_left(char game_grid[][3])
 {
+	/*Check board state - if board is locked, return false*/
+
 	for (int i=0; i<3; i++)
 	{
 		for (int j=0; j<3; j++)
@@ -41,6 +45,9 @@ bool is_moves_left(char game_grid[][3])
 
 char check_win(char game_grid[][3])
 {
+	/*Check for a win and return a character representing the result*/
+
+	/*Check rows*/
 	for (int i=0; i<3; i++)
 	{
 		if (game_grid[i][0]==game_grid[i][1] &&
@@ -49,7 +56,7 @@ char check_win(char game_grid[][3])
 			return game_grid[i][0];
 		};
 	};
-
+	/*Check columns*/
 	for (int i=0; i<3; i++)
 	{
 		if (game_grid[0][i]==game_grid[1][i] &&
@@ -58,7 +65,7 @@ char check_win(char game_grid[][3])
 			return game_grid[0][i];
 		};
 	};
-
+	/*Check diagonals*/
 	if ((game_grid[0][0]==game_grid[1][1] &&
 	     game_grid[1][1]==game_grid[2][2]) ||
 	    (game_grid[0][2]==game_grid[1][1] &&
@@ -71,57 +78,10 @@ char check_win(char game_grid[][3])
 };
 
 
-/*
-bool check_win(char game_grid[][3], int res_row, int res_column, char current_player)
-{
-	if (game_grid[res_row][0] == current_player &&
-	    game_grid[res_row][1] == current_player &&
-	    game_grid[res_row][2] == current_player)
-	{
-		return true;
-	}
-	else if (game_grid[0][res_column] == current_player &&
-		 game_grid[1][res_column] == current_player &&
-		 game_grid[2][res_column] == current_player)
-	{
-		return true;
-	}
-	else if ((game_grid[0][0] == current_player &&
-		  game_grid[1][1] == current_player &&
-		  game_grid[2][2] == current_player) ||
-		 (game_grid[0][2] == current_player &&
-		  game_grid[1][1] == current_player &&
-		  game_grid[2][0] == current_player))
-	{
-		return true;
-	};
-	
-	return false;
-};
-*/
-
-int evaluate_board(char game_grid[][3], char maxplayer, char minplayer)
-{
-	char result = check_win(game_grid);
-
-	if (result == maxplayer)
-	{
-		return 10;
-	}
-	else if (result == minplayer)
-	{
-		return -10;
-	}
-	else
-	{
-		return 0;
-	};
-};
-
-
 int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minplayer)
 {
 	/*Check for a terminal state*/
+
 	char result = check_win(game_grid);
 
 	if (result == maxplayer) 
