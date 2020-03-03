@@ -4,6 +4,7 @@
 #include "xo_backend.h"
 
 void draw_board(char game_grid[][3])
+/*Prints the current game state to stdout*/
 {
 	printf("\n%s\n", "Game state:");
 	printf(" %d %d %d\n", 1, 2, 3);
@@ -21,65 +22,21 @@ void draw_board(char game_grid[][3])
 };
 
 
-bool check_space(char game_grid[][3], int res_row, int res_column)
-{
-	char space;
-	
-	space = game_grid[res_row][res_column];
-
-	if (space == '-')
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	};
-
-	return false;
-};
-
-
-bool check_win(char game_grid[][3], int res_row, int res_column, char current_player)
-{
-	if (game_grid[res_row][0] == current_player &&
-	    game_grid[res_row][1] == current_player &&
-	    game_grid[res_row][2] == current_player)
-	{
-		return true;
-	}
-	else if (game_grid[0][res_column] == current_player &&
-		 game_grid[1][res_column] == current_player &&
-		 game_grid[2][res_column] == current_player)
-	{
-		return true;
-	}
-	else if ((game_grid[0][0] == current_player &&
-		  game_grid[1][1] == current_player &&
-		  game_grid[2][2] == current_player) ||
-		 (game_grid[0][2] == current_player &&
-		  game_grid[1][1] == current_player &&
-		  game_grid[2][0] == current_player))
-	{
-		return true;
-	};
-	
-	return false;
-};
-
-
 char game_loop(char player_1, char player_2, char current_player)
+/*Executes a complete 2-player game*/
 {
 	bool game_over;
-	bool game_win;
 	bool space_ok;
 
 	char game_grid[3][3];
 	char buffer_clear;
+	char game_win;
 
 	int res_row;
 	int res_column;
 	int turn_count;
+
+	struct move best_move;
 	
 	for (int i=0; i<3; i++)
 	{
@@ -96,6 +53,9 @@ char game_loop(char player_1, char player_2, char current_player)
 	while (1)
 	{
 		draw_board(game_grid);
+
+		best_move = find_best_move(game_grid, current_player, player_1, player_2);
+		printf("\n%s %d, %d", "The best possible move is:", best_move.row+1, best_move.column+1);
 		
 		printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
 
@@ -129,9 +89,9 @@ char game_loop(char player_1, char player_2, char current_player)
 		{
 			turn_count += 1;
 			game_grid[res_row][res_column] = current_player;
-			game_win = check_win(game_grid, res_row, res_column, current_player);
+			game_win = check_win(game_grid);
 
-			if (game_win)
+			if (game_win == current_player)
 			{
 				return current_player;
 			}	
@@ -160,7 +120,6 @@ char game_loop(char player_1, char player_2, char current_player)
 };
 
 
-
 int main()
 {
 	bool game_end;
@@ -179,6 +138,7 @@ int main()
 	player_1_wins = 0;
 	player_2_wins = 0;
 
+	
 	printf("%s", "Player 1, please input your symbol: ");
 	if (scanf("%c%c", &player_1, &buffer_clear) == 0)
 	{	
