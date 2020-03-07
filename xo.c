@@ -23,7 +23,7 @@ void draw_board(char game_grid[][3])
 };
 
 
-char game_loop(char player_1, char player_2, char current_player)
+char game_loop(char player_1, char player_2, char current_player, bool ai)
 {
 	/*Executes a complete 2-player game*/
 
@@ -56,30 +56,67 @@ char game_loop(char player_1, char player_2, char current_player)
 	{
 		draw_board(game_grid);
 
-		best_move = find_best_move(game_grid, current_player, player_1, player_2);
-		printf("\n%s %d, %d", "The best possible move is:", best_move.row+1, best_move.column+1);
-		
-		printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
-
-		if (scanf("%d, %d", &res_row, &res_column) == 0)
-		{	
-			printf("\n%s\n", "Invalid input, try again");
-
-			do
-			{
-				buffer_clear = getchar();
-			}
-			while (!isdigit(buffer_clear));
-			ungetc(buffer_clear, stdin);	
-		};
-
-		if (res_row < 1 ||
-		    res_row > 3 ||
-		    res_column < 1 ||
-		    res_column > 3)
+		if (ai)
 		{
-			printf("\n%s\n", "Invalid input, please check coordinates.");
-			continue;
+			if (current_player == player_1)
+			{
+				printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
+
+				if (scanf("%d, %d", &res_row, &res_column) == 0)
+				{	
+					printf("\n%s\n", "Invalid input, try again");
+
+					do
+					{
+						buffer_clear = getchar();
+					}
+					while (!isdigit(buffer_clear));
+					ungetc(buffer_clear, stdin);	
+				};
+
+				if (res_row < 1 ||
+				    res_row > 3 ||
+				    res_column < 1 ||
+				    res_column > 3)
+				{
+					printf("\n%s\n", "Invalid input, please check coordinates.");
+					continue;
+				};
+			}
+			else
+			{
+				best_move = find_best_move(game_grid, current_player, player_1, player_2);
+				res_row = best_move.row+1;
+				res_column = best_move.column+1;
+
+				printf("\nThe AI has chosen: %d, %d\n", res_row, res_column);
+			};
+
+		}
+		else
+		{
+			printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
+
+			if (scanf("%d, %d", &res_row, &res_column) == 0)
+			{	
+				printf("\n%s\n", "Invalid input, try again");
+
+				do
+				{
+					buffer_clear = getchar();
+				}
+				while (!isdigit(buffer_clear));
+				ungetc(buffer_clear, stdin);	
+			};
+
+			if (res_row < 1 ||
+			    res_row > 3 ||
+			    res_column < 1 ||
+			    res_column > 3)
+			{
+				printf("\n%s\n", "Invalid input, please check coordinates.");
+				continue;
+			};
 		};
 		
 		res_row -= 1;
@@ -127,12 +164,14 @@ int main()
 	/*Main tic-tac-toe functionality*/
 
 	bool game_end;
+	bool ai;
 
 	char player_1;
 	char player_2;
 	char buffer_clear;
 	char current_player;
 	char game_result;
+	char res_ai;
 	char res_continue;
 	
 	int player_1_wins;
@@ -141,6 +180,40 @@ int main()
 	game_end = false;
 	player_1_wins = 0;
 	player_2_wins = 0;
+
+	while (1)
+	{
+		printf("%s\n", "Would you like to play against an AI opponent? (y - yes, n - no, two player local multiplayer):");
+		if (scanf("%c%c", &res_ai, &buffer_clear ) == 0)
+		{	
+			printf("\n%s\n", "Invalid input, please try again.");
+
+			do
+			{
+				buffer_clear = getchar();
+			}
+			while (!isalpha(buffer_clear));
+			ungetc(buffer_clear, stdin);	
+		};
+
+
+		if (res_ai == 'y' || res_ai == 'Y')
+		{
+			printf("\n%s\n", "Single-player mode selected.");
+			ai = true;
+			break;
+		}
+		else if (res_ai == 'n' || res_ai == 'N')
+		{
+			printf("\n%s\n", "Two-player mode selected.");
+			ai = false;
+			break;
+		}
+		else
+		{
+			printf("\n%s\n", "Invalid input, please try again.");
+		};
+	};
 
 	/*Get player inputs symbols*/	
 	printf("%s", "Player 1, please input your symbol: ");
@@ -155,7 +228,15 @@ int main()
 		while (!isalnum(buffer_clear));
 		ungetc(buffer_clear, stdin);	
 	};
-	printf("%s", "Player 2, please input your symbol: ");
+
+	if (ai)
+	{
+		printf("%s", "Please select your opponent's symbol: ");
+	}
+	else
+	{
+		printf("%s", "Player 2, please input your symbol: ");
+	};
 	if (scanf("%c%c", &player_2, &buffer_clear) == 0)
 	{	
 		printf("\n%s\n", "Invalid input, try again. Must be alphanumeric.");
@@ -173,7 +254,7 @@ int main()
 	/*Session loop*/
 	while (!game_end)
 	{
-		game_result = game_loop(player_1, player_2, current_player);
+		game_result = game_loop(player_1, player_2, current_player, ai);
 		getchar(); /*don't question it*/
 
 		if (game_result == player_1)
