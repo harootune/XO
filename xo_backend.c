@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include "xo_backend.h"
@@ -154,17 +155,27 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 };
 
 
-struct move find_best_move(char game_grid[][3], char current_player, char maxplayer, char minplayer)
+struct move* find_best_move(char game_grid[][3], char current_player, char maxplayer, char minplayer)
 {
 	/*Return the best move for a player in a given situation*/
 	
+	struct move* move_arr;
+
 	struct move best_move;
+	struct move second_move;
+	struct move third_move;
+
 	int move_val;
 	int best_val;
+	int second_val;
+	int third_val;
 
 	if (current_player == maxplayer)
 	{
 		best_val = -1000;
+		second_val = -1000;
+		third_val = -1000;
+	
 		for (int i=0; i<3; i++)
 		{
 			for (int j=0; j<3; j++)
@@ -179,16 +190,44 @@ struct move find_best_move(char game_grid[][3], char current_player, char maxpla
 						best_move.row = i;
 						best_move.column = j;
 						best_val = move_val;
+					}
+					else if (move_val > second_val)
+					{
+						second_move.row = i;
+						second_move.column = j;
+						second_val = move_val;
+					}
+					else if (move_val > third_val)
+					{
+						third_move.row = i;
+						third_move.column = j;
+						third_val = move_val;
 					};
 						
 					game_grid[i][j] = '-';
 				};	
 			};
 		};
+
+		if (second_val == -1000)
+		{
+			second_move.row = best_move.row;
+			second_move.column = best_move.column;
+			third_move.row = best_move.row;
+			third_move.column = best_move.column;
+		}
+		else if (third_val == -1000)
+		{
+			third_move.row = second_move.row;
+			third_move.column = second_move.column;
+		};
 	}
 	else	
 	{
 		best_val = 1000;
+		second_val = 1000;
+		third_val = 1000;
+
 		for (int i=0; i<3; i++)
 		{
 			for (int j=0; j<3; j++)
@@ -203,14 +242,46 @@ struct move find_best_move(char game_grid[][3], char current_player, char maxpla
 						best_move.row = i;
 						best_move.column = j;
 						best_val = move_val;
+					}
+					else if (move_val < second_val)
+					{
+						second_move.row = i;
+						second_move.column = j;
+						second_val = move_val;
+					}
+					else if (move_val < third_val)
+					{
+						third_move.row = i;
+						third_move.column = j;
+						third_val = move_val;
 					};
-						
+
 					game_grid[i][j] = '-';
 				};	
 			};
 		};
-	};
 
-	return best_move;
+		if (second_val == 1000)
+		{
+			second_move.row = best_move.row;
+			second_move.column = best_move.column;
+			third_move.row = best_move.row;
+			third_move.column = best_move.column;
+		}
+		else if (third_val == 1000)
+		{
+			third_move.row = second_move.row;
+			third_move.column = second_move.column;
+		};
+
+	};
+	
+	move_arr = malloc(sizeof(struct move) * 3);
+
+	move_arr[0] = best_move;
+	move_arr[1] = second_move;
+	move_arr[2] = third_move;
+
+	return move_arr;
 };
 

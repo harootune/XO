@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include <ctype.h>
 #include "xo_backend.h"
 
@@ -23,7 +26,7 @@ void draw_board(char game_grid[][3])
 };
 
 
-char game_loop(char player_1, char player_2, char current_player, bool ai)
+char game_loop(char player_1, char player_2, char current_player, bool ai, int difficulty)
 {
 	/*Executes a complete 2-player game*/
 
@@ -38,7 +41,6 @@ char game_loop(char player_1, char player_2, char current_player, bool ai)
 	int res_column;
 	int turn_count;
 
-	struct move best_move;
 	
 	for (int i=0; i<3; i++)
 	{
@@ -85,9 +87,79 @@ char game_loop(char player_1, char player_2, char current_player, bool ai)
 			}
 			else
 			{
-				best_move = find_best_move(game_grid, current_player, player_1, player_2);
-				res_row = best_move.row+1;
-				res_column = best_move.column+1;
+
+				struct move* best_moves;
+
+				best_moves = find_best_move(game_grid, current_player, player_1, player_2);
+			
+				if (difficulty == 0)
+				{
+					res_row = best_moves[0].row+1;
+					res_column = best_moves[0].column+1;
+				}
+				else
+				{		
+					srand(time(0));
+					int chance = rand() % 4;
+
+					if (difficulty == 1)
+					{
+						if (chance == 0 || chance == 1)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
+						};
+					}
+					else if (difficulty == 2)
+					{
+						if (chance == 0)
+						{
+							res_row = best_moves[0].row+1;
+							res_column = best_moves[0].column+1;
+						}
+						else if (chance == 1 || chance == 2)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
+						};
+					}
+					else if (difficulty == 3)
+					{
+						if (chance == 0 || chance == 1)
+						{
+							res_row = best_moves[0].row+1;
+							res_column = best_moves[0].column+1;
+						}	
+						else if (chance == 2)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].row+1;
+						};
+					}
+					else
+					{
+						printf("%s", "Difficulty not assigned properly");
+					};
+
+				};
+				sleep(2);
+
+				free(best_moves);
 
 				printf("\nThe AI has chosen: %d, %d\n", res_row, res_column);
 			};
@@ -174,6 +246,7 @@ int main()
 	char res_ai;
 	char res_continue;
 	
+	int difficulty;
 	int player_1_wins;
 	int player_2_wins;
 
@@ -212,6 +285,38 @@ int main()
 		else
 		{
 			printf("\n%s\n", "Invalid input, please try again.");
+		};
+	};
+	
+	if (ai)
+	{
+		while (1)
+		{
+			printf("%s\n", "Please select difficulty (0 - Perfect AI, 1 - Easy, 2 - Medium, 3 - Hard)");
+			if (scanf("%d%c", &difficulty, &buffer_clear ) == 0)
+			{	
+				printf("\n%s\n", "Invalid input, please try again.");
+
+				do
+				{
+					buffer_clear = getchar();
+				}
+				while (!isdigit(buffer_clear));
+				ungetc(buffer_clear, stdin);	
+			};
+
+			if (difficulty == 0 ||
+				difficulty == 1 ||
+				difficulty == 2 ||
+				difficulty ==3)
+			{
+				printf("\n%s: %d\n", "Difficulty selected",  difficulty);
+				break;
+			}
+			else
+			{
+				printf("\n%s\n", "Invalid input, must be 0, 1, 2, or 3.");
+			};
 		};
 	};
 
@@ -254,7 +359,7 @@ int main()
 	/*Session loop*/
 	while (!game_end)
 	{
-		game_result = game_loop(player_1, player_2, current_player, ai);
+		game_result = game_loop(player_1, player_2, current_player, ai, difficulty);
 		getchar(); /*don't question it*/
 
 		if (game_result == player_1)
