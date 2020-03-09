@@ -148,7 +148,7 @@ char game_loop(char player_1, char player_2, char current_player, bool ai, int d
 						else
 						{
 							res_row = best_moves[2].row+1;
-							res_column = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
 						};
 					}
 					else
