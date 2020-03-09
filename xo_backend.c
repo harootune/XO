@@ -83,15 +83,22 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 
 	if (result == maxplayer) 
 	{
-		return 10;
+		return 10-depth;
 	}
 	else if (result == minplayer)
 	{
-		return -10;
+		return -10+depth;
 	}	
 	else if (!(is_moves_left(game_grid)))
 	{
-		return 0;
+		if (max)
+		{
+			return 0+depth;
+		}
+		else
+		{
+			return 0-depth;
+		};	
 	};
 
 
@@ -109,7 +116,7 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 				{
 					game_grid[i][j] = maxplayer;
 
-					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer, alpha, beta);
+					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer, alpha, beta) - depth;
 
 					game_grid[i][j] = '-';
 
