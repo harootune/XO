@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include <ctype.h>
 #include "xo_backend.h"
 
@@ -23,7 +26,7 @@ void draw_board(char game_grid[][3])
 };
 
 
-char game_loop(char player_1, char player_2, char current_player)
+char game_loop(char player_1, char player_2, char current_player, bool ai, int difficulty)
 {
 	/*Executes a complete 2-player game*/
 
@@ -38,7 +41,6 @@ char game_loop(char player_1, char player_2, char current_player)
 	int res_column;
 	int turn_count;
 
-	struct move best_move;
 	
 	for (int i=0; i<3; i++)
 	{
@@ -56,30 +58,137 @@ char game_loop(char player_1, char player_2, char current_player)
 	{
 		draw_board(game_grid);
 
-		best_move = find_best_move(game_grid, current_player, player_1, player_2);
-		printf("\n%s %d, %d", "The best possible move is:", best_move.row+1, best_move.column+1);
-		
-		printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
-
-		if (scanf("%d, %d", &res_row, &res_column) == 0)
-		{	
-			printf("\n%s\n", "Invalid input, try again");
-
-			do
-			{
-				buffer_clear = getchar();
-			}
-			while (!isdigit(buffer_clear));
-			ungetc(buffer_clear, stdin);	
-		};
-
-		if (res_row < 1 ||
-		    res_row > 3 ||
-		    res_column < 1 ||
-		    res_column > 3)
+		if (ai)
 		{
-			printf("\n%s\n", "Invalid input, please check coordinates.");
-			continue;
+			if (current_player == player_1)
+			{
+				printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
+
+				if (scanf("%d, %d", &res_row, &res_column) == 0)
+				{	
+					printf("\n%s\n", "Invalid input, try again");
+
+					do
+					{
+						buffer_clear = getchar();
+					}
+					while (!isdigit(buffer_clear));
+					ungetc(buffer_clear, stdin);	
+				};
+
+				if (res_row < 1 ||
+				    res_row > 3 ||
+				    res_column < 1 ||
+				    res_column > 3)
+				{
+					printf("\n%s\n", "Invalid input, please check coordinates.");
+					continue;
+				};
+			}
+			else
+			{
+
+				struct move* best_moves;
+
+				best_moves = find_best_move(game_grid, current_player, player_1, player_2);
+			
+				if (difficulty == 0)
+				{
+					res_row = best_moves[0].row+1;
+					res_column = best_moves[0].column+1;
+				}
+				else
+				{		
+					srand(time(0));
+					int chance = rand() % 4;
+
+					if (difficulty == 1)
+					{
+						if (chance == 0 || chance == 1)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
+						};
+					}
+					else if (difficulty == 2)
+					{
+						if (chance == 0)
+						{
+							res_row = best_moves[0].row+1;
+							res_column = best_moves[0].column+1;
+						}
+						else if (chance == 1 || chance == 2)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
+						};
+					}
+					else if (difficulty == 3)
+					{
+						if (chance == 0 || chance == 1)
+						{
+							res_row = best_moves[0].row+1;
+							res_column = best_moves[0].column+1;
+						}	
+						else if (chance == 2)
+						{
+							res_row = best_moves[1].row+1;
+							res_column = best_moves[1].column+1;
+						}
+						else
+						{
+							res_row = best_moves[2].row+1;
+							res_column = best_moves[2].column+1;
+						};
+					}
+					else
+					{
+						printf("%s", "Difficulty not assigned properly");
+					};
+
+				};
+				sleep(2);
+
+				free(best_moves);
+
+				printf("\nThe AI has chosen: %d, %d\n", res_row, res_column);
+			};
+
+		}
+		else
+		{
+			printf("\n%c, %s\n", current_player, "Please input the coordinates of the space you'd like to fill (Format - row, column):");
+
+			if (scanf("%d, %d", &res_row, &res_column) == 0)
+			{	
+				printf("\n%s\n", "Invalid input, try again");
+
+				do
+				{
+					buffer_clear = getchar();
+				}
+				while (!isdigit(buffer_clear));
+				ungetc(buffer_clear, stdin);	
+			};
+
+			if (res_row < 1 ||
+			    res_row > 3 ||
+			    res_column < 1 ||
+			    res_column > 3)
+			{
+				printf("\n%s\n", "Invalid input, please check coordinates.");
+				continue;
+			};
 		};
 		
 		res_row -= 1;
@@ -127,20 +236,89 @@ int main()
 	/*Main tic-tac-toe functionality*/
 
 	bool game_end;
+	bool ai;
 
 	char player_1;
 	char player_2;
 	char buffer_clear;
 	char current_player;
 	char game_result;
+	char res_ai;
 	char res_continue;
 	
+	int difficulty;
 	int player_1_wins;
 	int player_2_wins;
 
 	game_end = false;
 	player_1_wins = 0;
 	player_2_wins = 0;
+
+	while (1)
+	{
+		printf("%s\n", "Would you like to play against an AI opponent? (y - yes, n - no, two player local multiplayer):");
+		if (scanf("%c%c", &res_ai, &buffer_clear ) == 0)
+		{	
+			printf("\n%s\n", "Invalid input, please try again.");
+
+			do
+			{
+				buffer_clear = getchar();
+			}
+			while (!isalpha(buffer_clear));
+			ungetc(buffer_clear, stdin);	
+		};
+
+
+		if (res_ai == 'y' || res_ai == 'Y')
+		{
+			printf("\n%s\n", "Single-player mode selected.");
+			ai = true;
+			break;
+		}
+		else if (res_ai == 'n' || res_ai == 'N')
+		{
+			printf("\n%s\n", "Two-player mode selected.");
+			ai = false;
+			break;
+		}
+		else
+		{
+			printf("\n%s\n", "Invalid input, please try again.");
+		};
+	};
+	
+	if (ai)
+	{
+		while (1)
+		{
+			printf("%s\n", "Please select difficulty (0 - Perfect AI, 1 - Easy, 2 - Medium, 3 - Hard)");
+			if (scanf("%d%c", &difficulty, &buffer_clear ) == 0)
+			{	
+				printf("\n%s\n", "Invalid input, please try again.");
+
+				do
+				{
+					buffer_clear = getchar();
+				}
+				while (!isdigit(buffer_clear));
+				ungetc(buffer_clear, stdin);	
+			};
+
+			if (difficulty == 0 ||
+				difficulty == 1 ||
+				difficulty == 2 ||
+				difficulty ==3)
+			{
+				printf("\n%s: %d\n", "Difficulty selected",  difficulty);
+				break;
+			}
+			else
+			{
+				printf("\n%s\n", "Invalid input, must be 0, 1, 2, or 3.");
+			};
+		};
+	};
 
 	/*Get player inputs symbols*/	
 	printf("%s", "Player 1, please input your symbol: ");
@@ -155,7 +333,15 @@ int main()
 		while (!isalnum(buffer_clear));
 		ungetc(buffer_clear, stdin);	
 	};
-	printf("%s", "Player 2, please input your symbol: ");
+
+	if (ai)
+	{
+		printf("%s", "Please select your opponent's symbol: ");
+	}
+	else
+	{
+		printf("%s", "Player 2, please input your symbol: ");
+	};
 	if (scanf("%c%c", &player_2, &buffer_clear) == 0)
 	{	
 		printf("\n%s\n", "Invalid input, try again. Must be alphanumeric.");
@@ -173,7 +359,7 @@ int main()
 	/*Session loop*/
 	while (!game_end)
 	{
-		game_result = game_loop(player_1, player_2, current_player);
+		game_result = game_loop(player_1, player_2, current_player, ai, difficulty);
 		getchar(); /*don't question it*/
 
 		if (game_result == player_1)

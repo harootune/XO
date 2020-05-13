@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include "xo_backend.h"
@@ -7,11 +8,7 @@ bool check_space(char game_grid[][3], int res_row, int res_column)
 {
 	/*Check if space is available - return false if not*/
 
-	char space;
-	
-	space = game_grid[res_row][res_column];
-
-	if (space == '-')
+	if (game_grid[res_row][res_column]  == '-')
 	{
 		return true;
 	}
@@ -78,7 +75,7 @@ char check_win(char game_grid[][3])
 };
 
 
-int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minplayer)
+int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minplayer, int alpha, int beta)
 {
 	/*Check for a terminal state*/
 
@@ -86,15 +83,22 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 
 	if (result == maxplayer) 
 	{
-		return 10;
+		return 10-depth;
 	}
 	else if (result == minplayer)
 	{
-		return -10;
+		return -10+depth;
 	}	
 	else if (!(is_moves_left(game_grid)))
 	{
-		return 0;
+		if (max)
+		{
+			return 0+depth;
+		}
+		else
+		{
+			return 0-depth;
+		};	
 	};
 
 
@@ -112,13 +116,23 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 				{
 					game_grid[i][j] = maxplayer;
 
-					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer);
+					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer, alpha, beta) - depth;
+
+					game_grid[i][j] = '-';
+
 					if (move_val > best_val)
 					{
 						best_val = move_val;
+						if (best_val > alpha)
+						{
+							alpha = best_val;
+						};
+
+						if (beta <= alpha)
+						{
+							break;
+						};
 					};
-					
-					game_grid[i][j] = '-';
 				};	
 			};
 		};
@@ -138,13 +152,24 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 				{
 					game_grid[i][j] = minplayer;
 
-					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer);
+					move_val = minimax(game_grid, depth+1, !max, maxplayer, minplayer, alpha, beta);
+
+					game_grid[i][j] = '-';
+
 					if (move_val < best_val)
 					{
 						best_val = move_val;
+
+						if (best_val < beta)
+						{
+							beta = best_val;
+						};
+						
+						if (beta <= alpha)
+						{
+							break;
+						};
 					};
-					
-					game_grid[i][j] = '-';
 				};	
 			};
 		};
@@ -154,17 +179,27 @@ int minimax(char game_grid[][3], int depth, bool max, char maxplayer, char minpl
 };
 
 
-struct move find_best_move(char game_grid[][3], char current_player, char maxplayer, char minplayer)
+struct move* find_best_move(char game_grid[][3], char current_player, char maxplayer, char minplayer)
 {
 	/*Return the best move for a player in a given situation*/
 	
+	struct move* move_arr;
+
 	struct move best_move;
+	struct move second_move;
+	struct move third_move;
+
 	int move_val;
 	int best_val;
+	int second_val;
+	int third_val;
 
 	if (current_player == maxplayer)
 	{
 		best_val = -1000;
+		second_val = -1000;
+		third_val = -1000;
+	
 		for (int i=0; i<3; i++)
 		{
 			for (int j=0; j<3; j++)
@@ -173,22 +208,51 @@ struct move find_best_move(char game_grid[][3], char current_player, char maxpla
 				{
 					game_grid[i][j] = current_player;
 
-					move_val = minimax(game_grid, 0, false, maxplayer, minplayer);
+					move_val = minimax(game_grid, 0, false, maxplayer, minplayer, -1000, 1000);
+
+					game_grid[i][j] = '-';
+
 					if (move_val > best_val)
 					{
 						best_move.row = i;
 						best_move.column = j;
 						best_val = move_val;
+					}
+					else if (move_val > second_val)
+					{
+						second_move.row = i;
+						second_move.column = j;
+						second_val = move_val;
+					}
+					else if (move_val > third_val)
+					{
+						third_move.row = i;
+						third_move.column = j;
+						third_val = move_val;
 					};
-						
-					game_grid[i][j] = '-';
 				};	
 			};
+		};
+
+		if (second_val == -1000)
+		{
+			second_move.row = best_move.row;
+			second_move.column = best_move.column;
+			third_move.row = best_move.row;
+			third_move.column = best_move.column;
+		}
+		else if (third_val == -1000)
+		{
+			third_move.row = second_move.row;
+			third_move.column = second_move.column;
 		};
 	}
 	else	
 	{
 		best_val = 1000;
+		second_val = 1000;
+		third_val = 1000;
+
 		for (int i=0; i<3; i++)
 		{
 			for (int j=0; j<3; j++)
@@ -197,20 +261,53 @@ struct move find_best_move(char game_grid[][3], char current_player, char maxpla
 				{
 					game_grid[i][j] = current_player;
 
-					move_val = minimax(game_grid, 0, true, maxplayer, minplayer);
+					move_val = minimax(game_grid, 0, true, maxplayer, minplayer, -1000, 1000);
+
+					game_grid[i][j] = '-';
+
 					if (move_val < best_val)
 					{
 						best_move.row = i;
 						best_move.column = j;
 						best_val = move_val;
+					}
+					else if (move_val < second_val)
+					{
+						second_move.row = i;
+						second_move.column = j;
+						second_val = move_val;
+					}
+					else if (move_val < third_val)
+					{
+						third_move.row = i;
+						third_move.column = j;
+						third_val = move_val;
 					};
-						
-					game_grid[i][j] = '-';
 				};	
 			};
 		};
-	};
 
-	return best_move;
+		if (second_val == 1000)
+		{
+			second_move.row = best_move.row;
+			second_move.column = best_move.column;
+			third_move.row = best_move.row;
+			third_move.column = best_move.column;
+		}
+		else if (third_val == 1000)
+		{
+			third_move.row = second_move.row;
+			third_move.column = second_move.column;
+		};
+
+	};
+	
+	move_arr = malloc(sizeof(struct move) * 3);
+
+	move_arr[0] = best_move;
+	move_arr[1] = second_move;
+	move_arr[2] = third_move;
+
+	return move_arr;
 };
 
